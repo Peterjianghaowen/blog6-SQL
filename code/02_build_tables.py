@@ -3,7 +3,7 @@ from load_data import load_raw
 
 individuals, parent_ids = load_raw()
 
-con = duckdb.connect()
+con = duckdb.connect("data/processed/psid.duckdb")
 con.register("individuals_raw", individuals)
 con.register("parent_ids_raw", parent_ids)
 
