@@ -1,0 +1,4 @@
+# Raw PSID data: do not redistribute (see README for download steps)
+data/raw/
+__pycache__/
+.DS_Store
