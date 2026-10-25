@@ -60,3 +60,38 @@ print("regression sample (age 25-55, all incomes > 0):", con.execute("""
       AND child_income_2022 > 0 AND parent_income_2022 > 0
       AND child_income_average > 0 AND parent_income_average > 0
 """).fetchone())
+
+# Sample funnel: how the raw PSID files narrow down to the regression sample.
+# Written out so the write-up can cite the counts without hard-coding them.
+funnel = [
+    ("People in the PSID 2023 individual file",
+     "SELECT COUNT(*) FROM individual_panel"),
+    ("Rows in the 2023 parent identification file",
+     "SELECT COUNT(*) FROM parent_links"),
+    ("  of which: a mother is identified",
+     "SELECT COUNT(*) FROM parent_links WHERE mother_1968_id > 0"),
+    ("  of which: a father is identified",
+     "SELECT COUNT(*) FROM parent_links WHERE father_1968_id > 0"),
+    ("Parent-child pairs matched to a parent record",
+     "SELECT COUNT(*) FROM parent_child_pairs"),
+    ("Distinct children with at least one matched parent",
+     "SELECT COUNT(DISTINCT (child_1968_id, child_person_number)) FROM parent_child_pairs"),
+    ("Children with both a mother and a father matched",
+     "SELECT COUNT(*) FROM matched_children WHERE n_parents_matched = 2"),
+    ("Children whose matched parent has positive income (2022)",
+     "SELECT COUNT(*) FROM matched_children WHERE parent_income_2022 > 0"),
+    ("Children whose matched parent has positive income (2020 and 2022)",
+     "SELECT COUNT(*) FROM matched_children WHERE parent_income_average > 0"),
+    ("Regression sample: ages 25-55, positive child and parent income",
+     """SELECT COUNT(*) FROM matched_children
+        WHERE child_age_2023 BETWEEN 25 AND 55
+          AND child_income_2022 > 0 AND parent_income_2022 > 0
+          AND child_income_average > 0 AND parent_income_average > 0"""),
+]
+
+with open("results/sample_funnel.csv", "w", newline="") as f:
+    f.write("step,n\n")
+    for label, query in funnel:
+        n = con.execute(query).fetchone()[0]
+        f.write(f'"{label}",{n}\n')
+        print(f"{label}: {n}")

@@ -3,6 +3,23 @@
 Tutorial code for estimating the intergenerational income elasticity (IGE)
 from PSID data, using SQL (DuckDB) inside Python to build the parent-child match.
 
+## Why this question
+
+How much of a parent's economic position does a child inherit? The
+intergenerational income elasticity (IGE) answers this with a single number: the
+percentage change in a child's long-run income associated with a 1% change in
+the parent's income. It is one of the most stable facts in economics, and one
+of the most policy-relevant, because it sets the ceiling on how much inequality
+moves between generations.
+
+Measuring it is harder than it looks. Parents and children have to be matched
+across decades of panel data, their incomes have to be measured in a way that
+is not distorted by a single good or bad year, and the child's age has to be
+chosen carefully, because a 28-year-old's income is not yet their long-run
+income. This repository does the matching with SQL, which is well suited to it:
+a `JOIN` on identifiers, a `GROUP BY` on the child, and an `AVG()` over the
+matched parents.
+
 ## Repository structure
 
 ```
@@ -44,10 +61,11 @@ Always run scripts from the repository root, because paths are relative.
 
 | Script | What it does |
 |---|---|
+| `code/01_read_data.py` | Exploratory look at the two raw files (shape, first rows) |
 | `code/load_data.py` | Reads the Excel file and the fixed-width parent ID file |
 | `code/02_build_tables.py` | Renames variables; creates `individual_panel` and `parent_links` in DuckDB |
 | `code/03_match_parents.py` | Joins children to mothers and fathers (`JOIN` on both ID parts, `UNION ALL`) |
-| `code/04_aggregate_children.py` | `GROUP BY` child, `AVG()` over eligible parents; builds single-year and two-year income |
+| `code/04_aggregate_children.py` | `GROUP BY` child, `AVG()` over eligible parents; builds single-year and two-year income; writes `results/sample_funnel.csv` |
 | `code/05_estimate_ige.py` | Log-log OLS with HC1 robust SE; writes `results/ige_main.csv` |
 | `code/06_lifecycle_bias.py` | Repeats the estimates by child age group; writes `results/ige_by_age.csv` |
 | `code/07_make_figures.py` | Draws the two figures in `results/` |
@@ -58,6 +76,61 @@ Always run scripts from the repository root, because paths are relative.
 - Children are matched to biological parents via the 2023 Parent Identification File.
 - Parent-child pairs living in the same family unit are dropped (family income would be identical).
 - Children aged 25-55 in 2023 with positive incomes; the same sample is used for all regressions.
+
+## Results
+
+The full sample funnel is written to `results/sample_funnel.csv`. It starts
+from 27,295 people in the 2023 PSID individual file and 103,725 rows in the
+2023 parent identification file, yields 15,728 children with at least one
+matched parent, and ends at **3,167 children** in the regression sample
+(ages 25-55 in 2023, living outside the parent's household, with positive
+income for both the child and the matched parent).
+
+**Headline estimate** (`results/ige_main.csv`, same 3,167 children in both
+regressions):
+
+| Income measure | IGE | Robust SE | 95% CI | R² |
+|---|---|---|---|---|
+| Single-year (2022) | 0.275 | 0.020 | 0.236 – 0.314 | 0.073 |
+| Two-year average (2020, 2022) | **0.305** | 0.018 | 0.269 – 0.340 | 0.092 |
+
+A 10% higher parental income is associated with roughly a 3.1% higher child's
+income. The two-year average gives both a larger point estimate and a higher
+fit: averaging over two years cancels part of the noise from temporary income
+shocks, so both the parent's and the child's income are measured closer to
+their underlying economic status.
+
+**Lifecycle profile** (`results/ige_by_age.csv`, see
+`results/fig2_ige_by_age.png`): the estimate is not constant across the child's
+life cycle. It rises from age 25-34 to a peak at 35-44 and then falls again at
+45-55, under both income measures. Earnings are still climbing steeply in the
+late twenties and still falling or winding down after the mid-forties, so
+income measured at either end of the range is a worse proxy for long-run status
+than income measured in the middle. This is the attenuation bias that the
+lifecycle literature warns about, and it is the reason the sample is
+restricted to children old enough to have largely finished their earnings ramp.
+
+**Figures**: `results/fig1_ige_overall.png` (single-year vs two-year estimate)
+and `results/fig2_ige_by_age.png` (estimate by child age group).
+
+## Limitations
+
+- **Two years is not a long run.** Averaging 2020 and 2022 reduces but does not
+  remove measurement error, which is why the R² stays low (0.09). The
+  literature's preferred long-run measures use much longer income windows.
+- **Family income, not individual income.** PSID family income includes a
+  spouse's earnings, so the parent's measure is household income in the
+  parent's own household, and the child's measure is household income in the
+  child's household.
+- **2020 and 2022 are unusual years.** They include the pandemic and its
+  aftermath, when labour markets and household composition moved sharply.
+- **Survivorship and selection.** The sample covers children who are
+  independently observed in 2023 with positive income; children who are not in
+  the PSID in 2023 are absent, and so are children whose matched parent is not
+  separately observed.
+- **No controls.** The regressions are a single-variable log-log regression.
+  Adding parental characteristics and child background would change the
+  coefficient from a measure of rank persistence into a structural parameter.
 
 ## Source
 

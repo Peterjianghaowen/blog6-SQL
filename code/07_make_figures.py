@@ -29,7 +29,8 @@ ax.set_xlim(-0.6, 1.6)
 ax.set_ylim(0, 0.45)
 ax.set_ylabel("Estimated IGE coefficient")
 ax.set_title("Intergenerational Income Elasticity", fontweight="bold")
-ax.text(0.5, -0.2, "Common sample: 3,167 children ages 25-55 in separate households.\n"
+n_common = int(main["n"].iloc[0])
+ax.text(0.5, -0.2, f"Common sample: {n_common:,} children ages 25-55 in separate households.\n"
         "Points are OLS coefficients; bars are 95% CIs with HC1 robust standard errors.\n"
         "Source: PSID.", transform=ax.transAxes, ha="center", va="top", fontsize=8)
 ax.spines[["top", "right"]].set_visible(False)

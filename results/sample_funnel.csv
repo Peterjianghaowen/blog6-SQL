@@ -1,0 +1,11 @@
+step,n
+"People in the PSID 2023 individual file",27295
+"Rows in the 2023 parent identification file",103725
+"  of which: a mother is identified",60024
+"  of which: a father is identified",53488
+"Parent-child pairs matched to a parent record",23938
+"Distinct children with at least one matched parent",15728
+"Children with both a mother and a father matched",8210
+"Children whose matched parent has positive income (2022)",4893
+"Children whose matched parent has positive income (2020 and 2022)",4139
+"Regression sample: ages 25-55, positive child and parent income",3167
