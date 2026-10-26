@@ -106,9 +106,11 @@ life cycle. It rises from age 25-34 to a peak at 35-44 and then falls again at
 45-55, under both income measures. Earnings are still climbing steeply in the
 late twenties and still falling or winding down after the mid-forties, so
 income measured at either end of the range is a worse proxy for long-run status
-than income measured in the middle. This is the attenuation bias that the
-lifecycle literature warns about, and it is the reason the sample is
-restricted to children old enough to have largely finished their earnings ramp.
+than income measured in the middle. This pattern is consistent with the lifecycle
+bias that the literature warns about, although the confidence intervals
+overlap across age groups, so it is suggestive rather than conclusive. It is
+also why the sample is restricted to children old enough to have largely
+finished their earnings ramp.
 
 **Figures**: `results/fig1_ige_overall.png` (single-year vs two-year estimate)
 and `results/fig2_ige_by_age.png` (estimate by child age group).
